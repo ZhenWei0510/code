@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 int original_list[] = {7, 12, 19, 3, 18, 4, 2, 6, 15, 8}; /* Assume there are even numbers */
 #define N_LIST (sizeof(original_list)/sizeof(int))
@@ -23,7 +24,7 @@ struct ThreadArgs {
 };
 
 void *do_sort(void *args) {
-    struct ThreadArgs *ptr = (struct ThreadArgs *)arg;
+    struct ThreadArgs *ptr = (struct ThreadArgs *)args;
     char *id = ptr->id;
     int *first = ptr->first;
     int n = ptr->n;
@@ -56,11 +57,11 @@ void *do_sort(void *args) {
 }
 
 void *do_merge(void *arg) {
-    gettimeofday(&start,NULL);
+    // gettimeofday(&start,NULL);
 
-    gettimeofday(&end,NULL);
+    // gettimeofday(&end,NULL);
 
-    return usec_elapsed(start, end);
+    // return usec_elapsed(start, end);
 }
 
 
