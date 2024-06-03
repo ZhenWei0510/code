@@ -74,11 +74,12 @@ int main(int argc, char *argv[]) {
     pthread_attr_init(&attr0);
     pthread_attr_init(&attr1);
     pthread_attr_init(&attrm);
-    /* create the thread */
+
     /* wait for the thread to exit */
 
     int mylist[N_LIST];
     listncopy(mylist, original_list, N_LIST);
+    print_list("A1105526-M", "All-Old", original_list, N_LIST);
     struct ThreadArgs threadArgs = {"A1105526-X", mylist, N_LIST};
     
     pthread_create(&tid, &attr, do_sort, &threadArgs);
