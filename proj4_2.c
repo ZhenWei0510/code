@@ -63,8 +63,6 @@ void *do_merge(void *args) {
     int *first = ptr->first, *head1, *head2;
 
     struct timeval start, end;
-    
-    gettimeofday(&start,NULL);
 
     int *local_list = malloc(sizeof(int) * n);
     listncopy(local_list, original_list, n);
@@ -72,6 +70,7 @@ void *do_merge(void *args) {
     head1 = local_list;
     head2 = local_list + (n / 2);
 
+    gettimeofday(&start,NULL);
     /* two-way merge */
     for (int i = 0; i < n; i++) {
         if (*head1 < *head2) {
@@ -97,8 +96,8 @@ int main(int argc, char *argv[]) {
     pthread_attr_init(&attr0);
     pthread_attr_init(&attr1);
     pthread_attr_init(&attrm);
-    /* time */
-    void *t_ptr, *t0_ptr, *t1_ptr, *tm_ptr;
+
+    void *t_ptr, *t0_ptr, *t1_ptr, *tm_ptr; /* to receive the return value from threads */
 
     int mylist[N_LIST];
     /* Step 1: copy each element from original_list to mylist */
@@ -112,17 +111,17 @@ int main(int argc, char *argv[]) {
 
     print_list("A1105526-M", "All-Old", original_list, N_LIST);
 
-    /* Step 3:  */
+    /* Step 3: create two threads to sort the left sublist and the right sublist respectively*/
     struct ThreadArgs threadArgs0 = {"A1105526#0", original_list, N_LIST / 2};
-    pthread_create(&tid0, &attr0, do_sort, &threadArgs0);
+    pthread_create(&tid0, &attr0, do_sort, &threadArgs0); /* left */
     struct ThreadArgs threadArgs1 = {"A1105526#1", original_list + (N_LIST / 2), N_LIST / 2};
-    pthread_create(&tid1, &attr1, do_sort, &threadArgs1);
+    pthread_create(&tid1, &attr1, do_sort, &threadArgs1); /* right */
 
     /* wait for the thread to exit */
     pthread_join(tid0, &t0_ptr);
     pthread_join(tid1, &t1_ptr);
 
-    /* Step 4 */
+    /* Step 4: merge two sublist */
     struct ThreadArgs threadArgsm = {"A1105526#M", original_list, N_LIST};
     pthread_create(&tidm, &attrm, do_merge, &threadArgsm);
 
@@ -131,6 +130,7 @@ int main(int argc, char *argv[]) {
 
     print_list("A1105526-M", "All-New", original_list, N_LIST);
 
+    /* dereference the value (time) return by threads */
     unsigned long t0 = *(unsigned long*)t0_ptr,
                   t1 = *(unsigned long*)t1_ptr,
                   tm = *(unsigned long*)tm_ptr;
