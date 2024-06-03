@@ -62,16 +62,16 @@ void *do_merge(void *args) {
     int n = ptr->n;
     int *first = ptr->first, *head1, *head2;
 
+    struct timeval start, end;
+    
+    gettimeofday(&start,NULL);
+
     int *local_list = malloc(sizeof(int) * n);
     listncopy(local_list, original_list, n);
 
     head1 = local_list;
     head2 = local_list + (n / 2);
 
-    struct timeval start, end;
-    
-    print_list(id, "Sub-Old", first, n);
-    gettimeofday(&start,NULL);
     /* two-way merge */
     for (int i = 0; i < n; i++) {
         if (*head1 < *head2) {
@@ -81,8 +81,6 @@ void *do_merge(void *args) {
         }
     }
     gettimeofday(&end,NULL);
-    print_list(id, "SuB-New", first, n);
-    printf("%s spent %ld usec\n", id, usec_elapsed(start, end));
     
     unsigned long *usec_ptr = malloc(sizeof(unsigned long) * 1);
     *usec_ptr = usec_elapsed(start, end);
@@ -99,6 +97,8 @@ int main(int argc, char *argv[]) {
     pthread_attr_init(&attr0);
     pthread_attr_init(&attr1);
     pthread_attr_init(&attrm);
+    /* time */
+    void *t_ptr, *t0_ptr, *t1_ptr, *tm_ptr;
 
     int mylist[N_LIST];
     /* Step 1: copy each element from original_list to mylist */
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
     struct ThreadArgs threadArgs = {"A1105526-X", mylist, N_LIST};
     pthread_create(&tid, &attr, do_sort, &threadArgs);
     /* wait for the thread to exit */
-    pthread_join(tid,NULL);
+    pthread_join(tid,&t_ptr);
 
     print_list("A1105526-M", "All-Old", original_list, N_LIST);
 
@@ -119,19 +119,23 @@ int main(int argc, char *argv[]) {
     pthread_create(&tid1, &attr1, do_sort, &threadArgs1);
 
     /* wait for the thread to exit */
-    pthread_join(tid0,NULL);
-    pthread_join(tid1,NULL);
+    pthread_join(tid0, &t0_ptr);
+    pthread_join(tid1, &t1_ptr);
 
     /* Step 4 */
     struct ThreadArgs threadArgsm = {"A1105526#M", original_list, N_LIST};
     pthread_create(&tidm, &attrm, do_merge, &threadArgsm);
 
     /* wait for the thread to exit */
-    pthread_join(tidm,NULL);
+    pthread_join(tidm, &tm_ptr);
 
     print_list("A1105526-M", "All-New", original_list, N_LIST);
 
-    // printf("A1015501-M spent %ld usec\n", id, t0+t1+tm);
+    unsigned long t0 = *(unsigned long*)t0_ptr,
+                  t1 = *(unsigned long*)t1_ptr,
+                  tm = *(unsigned long*)tm_ptr;
+
+    printf("A1105526-M spent %ld usec\n", t0+t1+tm);
 
     return 0;
 }
