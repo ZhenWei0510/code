@@ -7,7 +7,7 @@ int original_list[] = {7, 12, 19, 3, 18, 4, 2, 6, 15, 8}; /* Assume there are ev
 #define N_LIST (sizeof(original_list)/sizeof(int))
 #define usec_elapsed(s,e) (1000000 * ((e).tv_sec-(s).tv_sec) + ((e).tv_usec-(s).tv_usec))
 
-void listncopy(int *src, int *dst, int n) {
+void listncopy(int *dst, int *src, int n) {
     for (int i = 0; i < n; i++) dst[i] = src[i];
 }
 
@@ -75,23 +75,31 @@ int main(int argc, char *argv[]) {
     pthread_attr_init(&attr1);
     pthread_attr_init(&attrm);
 
-    /* wait for the thread to exit */
-
     int mylist[N_LIST];
+    /* Step 1: copy each element from original_list to mylist */
     listncopy(mylist, original_list, N_LIST);
-    print_list("A1105526-M", "All-Old", original_list, N_LIST);
+
+    /* Step 2: create thread to sort mylist */
     struct ThreadArgs threadArgs = {"A1105526-X", mylist, N_LIST};
-    
     pthread_create(&tid, &attr, do_sort, &threadArgs);
+    /* wait for the thread to exit */
     pthread_join(tid,NULL);
 
     print_list("A1105526-M", "All-Old", original_list, N_LIST);
 
-    // Create sorting thread0: t0=do_sort(“A1015501#0 “, original_list, N_LIST/2);
-    // Create sorting thread1: t1=do_sort(“A1015501#1 “,original_list+N_LIST/2,N_LIST/2); Step 3
+    /* Step 3:  */
+    struct ThreadArgs threadArgs0 = {"A1105526#0", original_list, N_LIST};
+    pthread_create(&tid0, &attr0, do_sort, &threadArgs0);
+    struct ThreadArgs threadArgs1 = {"A1105526#1", original_list + (N_LIST / 2), N_LIST / 2};
+    pthread_create(&tid1, &attr1, do_sort, &threadArgs1);
+
+    /* wait for the thread to exit */
+    pthread_join(tid0,NULL);
+    pthread_join(tid1,NULL);
+
     // Create merging thread: tm = do_merge(A1015501#M “, original_list, N_LIST); Step 4
 
-    // print_list("A1015501-M", "All-New", original_list, N_LIST);
+    print_list("A1105526-M", "All-New", original_list, N_LIST);
 
     // printf("A1015501-M spent %ld usec\n", id, t0+t1+tm);
 
