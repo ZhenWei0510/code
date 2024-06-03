@@ -48,7 +48,7 @@ void *do_sort(void *args) {
         }
     }
     gettimeofday(&end,NULL);
-    print_list(id, "SUB-New", first, n);
+    print_list(id, "SuB-New", first, n);
     printf("%s spent %ld usec\n", id, usec_elapsed(start, end));
     
     unsigned long *usec_ptr = malloc(sizeof(unsigned long) * 1);
@@ -56,12 +56,37 @@ void *do_sort(void *args) {
     pthread_exit((void*) usec_ptr);
 }
 
-void *do_merge(void *arg) {
-    // gettimeofday(&start,NULL);
+void *do_merge(void *args) {
+    struct ThreadArgs *ptr = (struct ThreadArgs *)args;
+    char *id = ptr->id;
+    int n = ptr->n;
+    int *first = ptr->first, *head1, *head2;
 
-    // gettimeofday(&end,NULL);
+    int *local_list = malloc(sizeof(int) * n);
+    listncopy(local_list, original_list, n);
 
-    // return usec_elapsed(start, end);
+    head1 = local_list;
+    head2 = local_list + (n / 2);
+
+    struct timeval start, end;
+    
+    print_list(id, "Sub-Old", first, n);
+    gettimeofday(&start,NULL);
+    /* two-way merge */
+    for (int i = 0; i < n; i++) {
+        if (*head1 < *head2) {
+            *(first++) = *(head1++);
+        } else {
+            *(first++) = *(head2++);
+        }
+    }
+    gettimeofday(&end,NULL);
+    print_list(id, "SuB-New", first, n);
+    printf("%s spent %ld usec\n", id, usec_elapsed(start, end));
+    
+    unsigned long *usec_ptr = malloc(sizeof(unsigned long) * 1);
+    *usec_ptr = usec_elapsed(start, end);
+    pthread_exit((void*) usec_ptr);
 }
 
 
@@ -88,7 +113,7 @@ int main(int argc, char *argv[]) {
     print_list("A1105526-M", "All-Old", original_list, N_LIST);
 
     /* Step 3:  */
-    struct ThreadArgs threadArgs0 = {"A1105526#0", original_list, N_LIST};
+    struct ThreadArgs threadArgs0 = {"A1105526#0", original_list, N_LIST / 2};
     pthread_create(&tid0, &attr0, do_sort, &threadArgs0);
     struct ThreadArgs threadArgs1 = {"A1105526#1", original_list + (N_LIST / 2), N_LIST / 2};
     pthread_create(&tid1, &attr1, do_sort, &threadArgs1);
@@ -97,7 +122,12 @@ int main(int argc, char *argv[]) {
     pthread_join(tid0,NULL);
     pthread_join(tid1,NULL);
 
-    // Create merging thread: tm = do_merge(A1015501#M “, original_list, N_LIST); Step 4
+    /* Step 4 */
+    struct ThreadArgs threadArgsm = {"A1105526#M", original_list, N_LIST};
+    pthread_create(&tidm, &attrm, do_merge, &threadArgsm);
+
+    /* wait for the thread to exit */
+    pthread_join(tidm,NULL);
 
     print_list("A1105526-M", "All-New", original_list, N_LIST);
 
