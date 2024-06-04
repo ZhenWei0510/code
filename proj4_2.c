@@ -137,5 +137,11 @@ int main(int argc, char *argv[]) {
 
     printf("A1105526-M spent %ld usec\n", t0+t1+tm);
 
+    /* remember to release memory */
+    free(t_ptr);
+    free(t0_ptr);
+    free(t1_ptr);
+    free(tm_ptr);
+
     return 0;
 }
